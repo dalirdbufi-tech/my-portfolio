@@ -14,6 +14,7 @@ export function Nav() {
       <nav className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 py-3">
         <a href="#top" className="text-sm font-semibold text-accent">
           dalird@devops<span className="text-muted">:~$</span>
+          <span className="cursor ml-1 inline-block h-[1em] w-[0.5em] translate-y-[2px] bg-accent align-middle" />
         </a>
         <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs sm:text-sm">
           {links.map((link) => (
