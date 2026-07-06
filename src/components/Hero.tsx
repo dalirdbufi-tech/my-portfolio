@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { profile } from "@/lib/data";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 
 type Step = {
   command: string;
@@ -60,25 +61,20 @@ const PAUSE_AFTER_TYPING_MS = 300;
 const PAUSE_BEFORE_NEXT_MS = 500;
 
 export function Hero() {
+  const reducedMotion = useReducedMotion();
   const [stepIndex, setStepIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
   const [completedSteps, setCompletedSteps] = useState(0);
-  const [finished, setFinished] = useState(false);
+
+  const finished = reducedMotion || stepIndex >= STEPS.length;
+  const activeStepIndex = reducedMotion ? STEPS.length - 1 : stepIndex;
+  const activeCharIndex = reducedMotion
+    ? STEPS[STEPS.length - 1].command.length
+    : charIndex;
+  const activeCompletedSteps = reducedMotion ? STEPS.length : completedSteps;
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setStepIndex(STEPS.length - 1);
-      setCharIndex(STEPS[STEPS.length - 1].command.length);
-      setCompletedSteps(STEPS.length);
-      setFinished(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (finished || stepIndex >= STEPS.length) {
-      setFinished(true);
-      return;
-    }
+    if (reducedMotion || finished) return;
 
     const command = STEPS[stepIndex].command;
 
@@ -100,7 +96,7 @@ export function Hero() {
       clearTimeout(revealTimer);
       clearTimeout(nextTimer);
     };
-  }, [stepIndex, charIndex, finished]);
+  }, [stepIndex, charIndex, finished, reducedMotion]);
 
   return (
     <section className="mx-auto w-full max-w-4xl px-6 pt-10 pb-6 sm:pt-16">
@@ -113,10 +109,10 @@ export function Hero() {
         </div>
         <div className="min-h-[340px] px-5 py-8 text-sm leading-relaxed sm:px-8 sm:text-base">
           {STEPS.map((step, i) => {
-            if (i > stepIndex) return null;
-            const isActiveLine = i === stepIndex && !finished;
+            if (i > activeStepIndex) return null;
+            const isActiveLine = i === activeStepIndex && !finished;
             const typedCommand = isActiveLine
-              ? step.command.slice(0, charIndex)
+              ? step.command.slice(0, activeCharIndex)
               : step.command;
 
             return (
@@ -127,7 +123,7 @@ export function Hero() {
                     <span className="cursor ml-0.5 inline-block h-[1em] w-[0.5em] translate-y-[2px] bg-accent align-middle" />
                   )}
                 </p>
-                {i < completedSteps && step.output}
+                {i < activeCompletedSteps && step.output}
               </div>
             );
           })}

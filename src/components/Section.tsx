@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "@/lib/useReducedMotion";
 
 export function Section({
   id,
@@ -14,21 +15,18 @@ export function Section({
   children: ReactNode;
 }) {
   const ref = useRef<HTMLElement>(null);
-  const [visible, setVisible] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const [intersecting, setIntersecting] = useState(false);
+  const visible = reducedMotion || intersecting;
 
   useEffect(() => {
     const node = ref.current;
-    if (!node) return;
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setVisible(true);
-      return;
-    }
+    if (!node || reducedMotion) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setVisible(true);
+          setIntersecting(true);
           observer.disconnect();
         }
       },
@@ -36,7 +34,7 @@ export function Section({
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, []);
+  }, [reducedMotion]);
 
   return (
     <section
@@ -48,7 +46,7 @@ export function Section({
     >
       <div className="mb-6 flex items-center gap-3">
         <span className="text-sm text-accent">{index}</span>
-        <span className="text-sm text-muted">//</span>
+        <span className="text-sm text-muted">{"//"}</span>
         <h2 className="text-base font-semibold tracking-wide text-foreground sm:text-lg">
           {title}
         </h2>
